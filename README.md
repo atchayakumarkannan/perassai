@@ -57,3 +57,8 @@ The project uses Gradle 8.9, Android Gradle Plugin 8.7.3, JDK 17, and Android SD
 - `Open website example.com`
 - `Set an alarm for 7:30 AM`
 - `Call 9876543210` (opens the dialer; it does not place the call automatically)
+
+
+## Gemini chat resilience update
+
+Chat now retries transient 429/5xx errors and falls back through `gemini-3.8-flash`, `gemini-3.6-flash`, and `gemini-3.5-flash-lite`. Model availability and free quotas are controlled by Google; this does not guarantee a response if all models are overloaded or unavailable.
