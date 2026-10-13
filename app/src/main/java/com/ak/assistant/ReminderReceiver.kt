@@ -25,11 +25,11 @@ class ReminderReceiver : BroadcastReceiver() {
         val title = intent.getStringExtra("title") ?: "Your reminder"
         val id = intent.getIntExtra("id", (System.currentTimeMillis() % Int.MAX_VALUE).toInt())
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(NotificationChannel("akai_reminders", "AK AI reminders", NotificationManager.IMPORTANCE_HIGH))
+        if (Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(NotificationChannel("taurus_reminders", "TAURUS reminders", NotificationManager.IMPORTANCE_HIGH))
         val open = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        val notification = NotificationCompat.Builder(context, "akai_reminders")
+        val notification = NotificationCompat.Builder(context, "taurus_reminders")
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle("AK AI reminder")
+            .setContentTitle("TAURUS reminder")
             .setContentText(title)
             .setStyle(NotificationCompat.BigTextStyle().bigText(title))
             .setContentIntent(open).setAutoCancel(true).setPriority(NotificationCompat.PRIORITY_HIGH).build()

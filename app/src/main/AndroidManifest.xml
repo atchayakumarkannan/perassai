@@ -8,7 +8,7 @@
         <package android:name="com.spotify.music" />
         <package android:name="com.google.android.apps.youtube.music" />
     </queries>
-    <application android:allowBackup="false" android:label="AK AI" android:theme="@style/Theme.AKAI" android:usesCleartextTraffic="false">
+    <application android:allowBackup="false" android:label="TAURUS" android:icon="@mipmap/ic_taurus" android:roundIcon="@mipmap/ic_taurus" android:theme="@style/Theme.TAURUS" android:usesCleartextTraffic="false">
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
         </activity>

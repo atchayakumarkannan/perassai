@@ -1,4 +1,4 @@
-# AK AI — Jarvis-style Android assistant (starter build)
+# TAURUS — Jarvis-style Android assistant (starter build)
 
 Native Kotlin + Jetpack Compose app for Android 8+ (target SDK 35), prepared for testing on a Redmi Note 12 5G / Android 14.
 
@@ -7,11 +7,11 @@ Native Kotlin + Jetpack Compose app for Android 8+ (target SDK 35), prepared for
 - Chat interface with Android speech recognition input and optional spoken replies.
 - Optional Gemini API chat using `gemini-2.5-flash` (model availability and free quota can change; API key required for general AI chat).
 - Explicit on-device memories: save, list, and clear memories.
-- App picker: browse launcher apps installed on the device, add/remove them from AK AI's app library, launch them, and select a default music app.
+- App picker: browse launcher apps installed on the device, add/remove them from TAURUS's app library, launch them, and select a default music app.
 - Basic commands: open a selected app, open the dialer/contacts/settings, web search, open a website, set an alarm, and open Spotify / YouTube Music where installed.
 - Music search hand-off: try a Spotify search URI or YouTube Music search URL. Direct song playback depends on the target app and its supported links/API.
 - Local reminders: schedule a reminder in a number of minutes/hours from chat or through the Reminders tab, show a notification, and reschedule saved reminders after reboot.
-- Image Studio: select an image, apply offline original / black-and-white / warm / cool looks, and save a copy to `Pictures/AK AI`.
+- Image Studio: generate a new image from a text prompt, or select a photo and request generative AI edits; preview and save the result to `Pictures/TAURUS`.
 - GitHub Actions workflow to build and upload a debug APK.
 
 ## Important limitations
@@ -19,7 +19,7 @@ Native Kotlin + Jetpack Compose app for Android 8+ (target SDK 35), prepared for
 - This is a first implementation of the assistant, not unrestricted or fully autonomous phone control.
 - General chat uses a cloud Gemini API. Messages and included memories are sent to Google for responses. Review Google's current terms before use. The API key is stored in app-private preferences for this personal prototype, but an APK is not a secure place for a secret key.
 - Free AI quotas and model access can change. Local memories, app launching, reminders, and basic image filters do not require an AI API key.
-- The image studio in this build does **not** yet do generative AI image editing. It provides free offline filters; a separate image model/provider needs to be integrated and tested before promising free generative edits.
+- Generative image creation/editing uses the Gemini image model through the cloud API and requires a Gemini API key. Image-model access, pricing, regional availability, and quota vary; do not assume it is free or unlimited. Prompts and selected images are uploaded to Google for processing. Offline generative image creation is not included. If the selected model is unavailable to your key, the app will show the API error.
 - Notification delivery depends on granting notification permission and the device's battery/background policies. Reminder times use Android's inexact-friendly alarm API and may not fire at the exact second.
 - Android does not let ordinary apps freely control every third-party app. Spotify / YouTube Music playback behavior depends on installed versions and their supported intents, links, or APIs.
 - No always-listening wake word is included. This avoids unnecessary microphone use and battery drain in the first build.
@@ -27,17 +27,17 @@ Native Kotlin + Jetpack Compose app for Android 8+ (target SDK 35), prepared for
 ## Build APK with GitHub Actions
 
 1. Create a new GitHub repository.
-2. Extract this ZIP and upload **everything inside the extracted folder** to the repository root. The `.github` folder must be at the repository root, so the workflow path is exactly `.github/workflows/build-apk.yml` (not `AKAI/.github/...`). GitHub may require you to commit the files before the workflow appears.
-3. In the repository, open **Actions**. If prompted, click **I understand my workflows, go ahead and enable them**. Select **Build AK AI APK** and click **Run workflow**. You can also push to `main` / `master` to trigger it automatically.
-3. Download the `AK-AI-debug-apk` artifact from the completed workflow run.
+2. Extract this ZIP and upload **everything inside the extracted folder** to the repository root. The `.github` folder must be at the repository root, so the workflow path is exactly `.github/workflows/build-apk.yml` (not `TAURUS/.github/...`). GitHub may require you to commit the files before the workflow appears.
+3. In the repository, open **Actions**. If prompted, click **I understand my workflows, go ahead and enable them**. Select **Build TAURUS APK** and click **Run workflow**. You can also push to `main` / `master` to trigger it automatically.
+3. Download the `TAURUS-debug-apk` artifact from the completed workflow run.
 4. Extract `app-debug.apk` and install it on your phone. Allow installation from the app used to download/open the APK if Android asks.
 
 The project uses Gradle 8.9, Android Gradle Plugin 8.7.3, JDK 17, and Android SDK 35 through GitHub Actions. This workspace did not have the Android SDK/Gradle installed, so the source was not locally compiled or device-tested here.
 
-## Enable AI chat
+## Enable AI chat and image generation
 
 1. Create an API key in Google AI Studio.
-2. Open AK AI → Settings → paste the key → Save.
+2. Open TAURUS → Settings → paste the key → Save. The same key is used for chat and the image studio.
 3. Messages used for AI responses are sent to Google's Gemini API. Never commit your API key to source control.
 
 ## Example commands

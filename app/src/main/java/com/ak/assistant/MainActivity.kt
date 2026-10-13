@@ -26,6 +26,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -50,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -125,6 +127,9 @@ private fun TaurusScreen(onSpeak: (String) -> Unit) {
     var reminderTitle by remember { mutableStateOf("") }
     var reminderMinutes by remember { mutableStateOf("30") }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var generatedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var imagePrompt by remember { mutableStateOf("") }
+    var imageBusy by remember { mutableStateOf(false) }
     var imageStatus by remember { mutableStateOf("") }
     var filter by remember { mutableFloatStateOf(0f) }
     var messages by remember {
@@ -144,6 +149,7 @@ private fun TaurusScreen(onSpeak: (String) -> Unit) {
                 val bitmap = try { decodeScaledBitmap(context, uri) } catch (_: Exception) { null }
                 withContext(Dispatchers.Main) {
                     imageBitmap = bitmap
+                    generatedBitmap = null
                     filter = 0f
                     if (bitmap == null) imageStatus = "Couldn't load this image."
                 }
@@ -236,9 +242,11 @@ private fun TaurusScreen(onSpeak: (String) -> Unit) {
 
     Column(Modifier.fillMaxSize().background(Bg).padding(horizontal = 16.dp)) {
         Row(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(42.dp).background(Accent, CircleShape), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.SmartToy, contentDescription = null, tint = Bg)
-            }
+            Image(
+                painter = painterResource(id = com.ak.assistant.R.drawable.taurus_logo),
+                contentDescription = "TAURUS logo",
+                modifier = Modifier.size(48.dp)
+            )
             Column(Modifier.weight(1f).padding(start = 10.dp)) {
                 Text("TAURUS", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 Text("Your personal AI assistant", fontSize = 12.sp, color = Muted)
@@ -397,34 +405,57 @@ private fun TaurusScreen(onSpeak: (String) -> Unit) {
             }
 
             "Images" -> {
-                Text("Image studio", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
-                Text("Choose a photo, apply an offline filter, and save an edited copy. Generative AI editing is not included in this screen yet.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 8.dp))
+                Text("TAURUS Image Studio", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+                Text("Generate images from a text prompt, or select a photo and describe how you want AI to edit it.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 8.dp))
                 Button(onClick = {
                     imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 }, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.Image, contentDescription = null); Spacer(Modifier.width(8.dp)); Text("Choose photo")
+                    Icon(Icons.Default.Image, contentDescription = null); Spacer(Modifier.width(8.dp)); Text(if (imageBitmap == null) "Select photo to AI-edit (optional)" else "Change selected photo")
                 }
-                if (imageBitmap != null) {
+                OutlinedTextField(
+                    value = imagePrompt, onValueChange = { imagePrompt = it },
+                    label = { Text("Describe the image or edit") },
+                    placeholder = { Text("e.g. Create a cinematic cyberpunk city at night") },
+                    minLines = 2, maxLines = 4, modifier = Modifier.fillMaxWidth(),
+                    enabled = !imageBusy
+                )
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = {
+                            if (imagePrompt.isBlank()) { imageStatus = "Enter a prompt first." }
+                            else if (memory.apiKey().isBlank()) { imageStatus = "Add your Gemini API key in Settings. Image generation may require an eligible paid quota; it is not guaranteed free." }
+                            else {
+                                imageBusy = true; imageStatus = "Generating with TAURUS image AI…"
+                                scope.launch {
+                                    val (bytes, note) = GeminiClient.generateOrEditImage(memory.apiKey(), imagePrompt.trim(), imageBitmap)
+                                    generatedBitmap = bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
+                                    imageStatus = if (generatedBitmap != null) note else note
+                                    imageBusy = false
+                                }
+                            }
+                        }, modifier = Modifier.weight(1f), enabled = !imageBusy
+                    ) { Text(if (imageBitmap == null) "Generate image" else "AI edit photo") }
+                    OutlinedButton(onClick = { imageBitmap = null; generatedBitmap = null; imageStatus = "Ready to create a new image." }, enabled = !imageBusy) { Text("New") }
+                }
+                if (imageBusy) { LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 6.dp)) }
+                val preview = generatedBitmap ?: imageBitmap
+                if (preview != null) {
                     AndroidView(
-                        factory = { ImageView(it).apply { scaleType = ImageView.ScaleType.FIT_CENTER } },
-                        update = { view -> view.setImageBitmap(applyImageFilter(imageBitmap!!, filter)) },
+                        factory = { ImageView(it).apply { scaleType = ImageView.ScaleType.FIT_CENTER; adjustViewBounds = true } },
+                        update = { view -> view.setImageBitmap(if (generatedBitmap != null) generatedBitmap else imageBitmap) },
                         modifier = Modifier.weight(1f).fillMaxWidth().padding(vertical = 8.dp)
                     )
-                    Text("Look", color = Color.White)
-                    Slider(value = filter, onValueChange = { filter = it }, valueRange = 0f..3f, steps = 2)
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Original", color = Muted, fontSize = 10.sp); Text("B&W", color = Muted, fontSize = 10.sp)
-                        Text("Warm", color = Muted, fontSize = 10.sp); Text("Cool", color = Muted, fontSize = 10.sp)
-                    }
+                    if (generatedBitmap != null) Text("AI-generated result", color = Accent, fontSize = 12.sp)
                     Button(onClick = {
                         scope.launch(Dispatchers.IO) {
-                            val output = try { saveEditedImage(context, applyImageFilter(imageBitmap!!, filter)) } catch (_: Exception) { null }
-                            withContext(Dispatchers.Main) { imageStatus = if (output != null) "Edited copy saved to Pictures/TAURUS." else "Couldn't save the edited image." }
+                            val toSave = generatedBitmap ?: imageBitmap
+                            val output = try { if (toSave != null) saveEditedImage(context, toSave) else null } catch (_: Exception) { null }
+                            withContext(Dispatchers.Main) { imageStatus = if (output != null) "Image saved to Pictures/TAURUS." else "Couldn't save the image." }
                         }
-                    }, modifier = Modifier.fillMaxWidth()) { Text("Save edited copy") }
+                    }, modifier = Modifier.fillMaxWidth(), enabled = preview != null) { Text("Save image") }
                 } else {
                     Spacer(Modifier.weight(1f))
-                    Text("Your selected photo will appear here.", color = Muted, modifier = Modifier.align(Alignment.CenterHorizontally).padding(24.dp))
+                    Text("Your generated image will appear here. Leave the photo unselected to create from text, or select one to edit it.", color = Muted, textAlign = TextAlign.Center, modifier = Modifier.align(Alignment.CenterHorizontally).padding(24.dp))
                 }
                 if (imageStatus.isNotBlank()) Text(imageStatus, color = Accent, fontSize = 12.sp, modifier = Modifier.padding(vertical = 8.dp))
             }
