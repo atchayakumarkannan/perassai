@@ -24,6 +24,7 @@ import android.widget.ImageView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -251,7 +252,7 @@ private fun AssistantScreen(onSpeak: (String) -> Unit) {
             "Images" -> {
                 Text("Image studio", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
                 Text("Select a photo, apply a quick offline look, and save an edited copy. Generative AI editing will be a separate provider integration.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 8.dp))
-                Button(onClick = { imagePicker.launch(ActivityResultContracts.PickVisualMedia.ImageOnly) }, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Image, null); Spacer(Modifier.width(8.dp)); Text("Choose photo") }
+                Button(onClick = {imagePicker.launchPickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))},modifier = Modifier.fillMaxWidth()) {Icon(Icons.Default.Image, null)Spacer(Modifier.width(8.dp))Text("Choose photo")}
                 if (imageBitmap != null) {
                     AndroidView(factory = { ImageView(it).apply { scaleType = ImageView.ScaleType.FIT_CENTER } }, update = { view -> view.setImageBitmap(applyImageFilter(imageBitmap!!, filter)) }, modifier = Modifier.weight(1f).fillMaxWidth().padding(vertical = 8.dp))
                     Text("Look", color = Color.White)
