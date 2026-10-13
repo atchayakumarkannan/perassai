@@ -26,8 +26,9 @@ Native Kotlin + Jetpack Compose app for Android 8+ (target SDK 35), prepared for
 
 ## Build APK with GitHub Actions
 
-1. Create a GitHub repository and upload the **contents** of this folder (not the ZIP itself).
-2. Open **Actions** and run **Build AK AI APK** (or push to `main` / `master`).
+1. Create a new GitHub repository.
+2. Extract this ZIP and upload **everything inside the extracted folder** to the repository root. The `.github` folder must be at the repository root, so the workflow path is exactly `.github/workflows/build-apk.yml` (not `AKAI/.github/...`). GitHub may require you to commit the files before the workflow appears.
+3. In the repository, open **Actions**. If prompted, click **I understand my workflows, go ahead and enable them**. Select **Build AK AI APK** and click **Run workflow**. You can also push to `main` / `master` to trigger it automatically.
 3. Download the `AK-AI-debug-apk` artifact from the completed workflow run.
 4. Extract `app-debug.apk` and install it on your phone. Allow installation from the app used to download/open the APK if Android asks.
 
